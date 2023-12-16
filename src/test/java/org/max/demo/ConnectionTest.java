@@ -16,7 +16,7 @@ public class ConnectionTest {
     private static Connection connection;
     @BeforeAll
     static void init() throws SQLException {
-        connect("demo_simple_sql.db");
+        connect("demo.db");
         createTable("CREATE TABLE IF NOT EXISTS employee_info\n" +
                 "(id integer PRIMARY KEY,\n" +
                 "first_name text NOT NULL,\n" +

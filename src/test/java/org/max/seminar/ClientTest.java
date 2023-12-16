@@ -1,5 +1,6 @@
 package org.max.seminar;
 
+import org.hibernate.Session;
 import org.hibernate.query.Query;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -11,6 +12,7 @@ import org.max.demo.EmployeeEntity;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Optional;
 
 public class ClientTest extends AbstractTest {
 
@@ -18,7 +20,7 @@ public class ClientTest extends AbstractTest {
     void getClients_whenValid_shouldReturn() throws SQLException {
         //given
         String sql = "SELECT * FROM client";
-        Statement stmt  = getConnection().createStatement();
+        Statement stmt = getConnection().createStatement();
         int countTableSize = 0;
         //when
         ResultSet rs = stmt.executeQuery(sql);
@@ -36,7 +38,7 @@ public class ClientTest extends AbstractTest {
     void getClientById_whenValid_shouldReturn(int id, String lastName) throws SQLException {
         //given
         String sql = "SELECT * FROM client WHERE client_id=" + id;
-        Statement stmt  = getConnection().createStatement();
+        Statement stmt = getConnection().createStatement();
         String name = "";
         //when
         ResultSet rs = stmt.executeQuery(sql);
@@ -45,5 +47,68 @@ public class ClientTest extends AbstractTest {
         }
         //then
         Assertions.assertEquals(lastName, name);
+    }
+
+    @ParameterizedTest // Hibernate
+    @CsvSource({"Иванов1", "Петров1", "Сидоров1"})
+    void addNewClient(String lastname) throws SQLException {
+        String sql = "SELECT MAX(client_id) FROM client";
+        Statement stmt = getConnection().createStatement();
+        ResultSet rs = stmt.executeQuery(sql);
+        short num = (short) (rs.getShort(1) + 1);
+        getConnection().close();
+
+        ClientEntity clientEntity = new ClientEntity(); // добавляем
+        clientEntity.setClientId(num);
+        clientEntity.setLastName(lastname);
+        clientEntity.setFirstName("");
+        clientEntity.setApartment("");
+        clientEntity.setDistrict("");
+        clientEntity.setHouse("");
+        clientEntity.setStreet("");
+        clientEntity.setPhoneNumber("");
+
+        Session session = getSession(); // выполняем транзакцию обьекта и закомитим
+        session.beginTransaction();
+        session.persist(clientEntity);
+        session.getTransaction().commit();
+
+        // проверка на конкретный ID который добавили
+
+        final Query queryWhere = session.createQuery("FROM " + "ClientEntity" + " WHERE client_id=" + num); // делаем запрос и проверяем -- меняем на класс ClientEntity
+        System.out.println("executing: " + queryWhere.getQueryString()); // выполнение
+        Optional<ClientEntity> entity = queryWhere.uniqueResultOptional();
+        Assertions.assertTrue(entity.isPresent());
+        Assertions.assertEquals(lastname, entity.get().getLastName());
+    }
+
+    @ParameterizedTest // sql
+    @CsvSource({"Иванов1", "Петров1", "Сидоров1"})
+    void addNewClient2(String lastname) throws SQLException {
+        Session session = getSession();
+        String sql = "SELECT MAX(client_id) FROM client";
+        final Query queryWhereid = session.createSQLQuery(sql); // передаем на sql
+        Integer num = (Integer) queryWhereid.uniqueResult() + 1; // именно наш num
+
+        ClientEntity clientEntity = new ClientEntity();
+        clientEntity.setClientId(num.shortValue());
+        clientEntity.setLastName(lastname);
+        clientEntity.setFirstName("");
+        clientEntity.setApartment("");
+        clientEntity.setDistrict("");
+        clientEntity.setHouse("");
+        clientEntity.setStreet("");
+        clientEntity.setPhoneNumber("");
+
+        session.beginTransaction();
+        session.persist(clientEntity);
+        session.getTransaction().commit();
+
+        final Query queryWhere = session.createQuery("FROM " + "ClientEntity" + " WHERE client_id=" + num);
+        System.out.println("executing: " + queryWhere.getQueryString());
+        Optional<ClientEntity> entity = queryWhere.uniqueResultOptional();
+        Assertions.assertTrue(entity.isPresent());
+        Assertions.assertEquals(lastname, entity.get().getLastName());
+
     }
 }
