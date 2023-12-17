@@ -106,8 +106,8 @@
                     <schemas>
                         <schema>schemaName</schema>
                     </schemas>  -->
-                    <url>jdbc:sqlite:seminar.db</url>     <!--demo.db-->
-                    <locations>filesystem:db/seminar/migration</locations> <!--demo/migration-->
+                    <url>jdbc:sqlite:home.db</url>     <!--demo.db-->
+                    <locations>filesystem:db/home/migration</locations> <!--demo/migration-->
                 </configuration>
             </plugin>
             <plugin>

@@ -4,27 +4,24 @@ import org.hibernate.HibernateException;
 import org.hibernate.Session;
 import org.hibernate.SessionFactory;
 import org.hibernate.cfg.Configuration;
-import org.junit.jupiter.api.AfterAll;
-import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.*;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.SQLException;
+import java.sql.*;
 
 public class AbstractTest {
 
     private static Connection connection;
     private static SessionFactory ourSessionFactory;
 
-    @BeforeAll
-    static void init() {
+    @BeforeEach
+    void init() {
         try {
             //Регистрация драйвера
             Class.forName("org.sqlite.JDBC");
             //Создание подключения
             connection = DriverManager.getConnection("jdbc:sqlite:home.db");
-        } catch ( Exception e ) {
-            System.err.println( e.getClass().getName() + ": " + e.getMessage() );
+        } catch (Exception e) {
+            System.err.println(e.getClass().getName() + ": " + e.getMessage());
             System.exit(0);
         }
 
@@ -40,10 +37,8 @@ public class AbstractTest {
         System.out.println("Opened database successfully");
     }
 
-
-
-    @AfterAll
-    static void close() throws SQLException {
+    @AfterEach
+    void close() throws SQLException {
         connection.close();
         getSession().close();
         System.out.println("Closed database successfully");
